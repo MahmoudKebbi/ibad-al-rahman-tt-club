@@ -180,3 +180,13 @@ export const updateUserRole = async (userId, newRole) => {
     throw error;
   }
 };
+
+export const resetPassword = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw error;
+  }
+};
