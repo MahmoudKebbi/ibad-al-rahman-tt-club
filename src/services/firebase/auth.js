@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   getAdditionalUserInfo,
+  signInAnonymously,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./config";
@@ -35,8 +36,6 @@ export const signInWithGoogle = async () => {
     const { isNewUser } = getAdditionalUserInfo(userCredential);
 
     if (isNewUser) {
-      // For new users, create a default profile in Firestore
-      // By default, new Google users will be assigned the 'guest' role
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
@@ -100,6 +99,31 @@ export const subscribeToAuthChanges = (callback) => {
       callback({ user: null, userData: null, isAuthenticated: false });
     }
   });
+};
+
+// Anonymous (Guest) Sign In
+export const signInAsGuest = async () => {
+  try {
+    const userCredential = await signInAnonymously(auth);
+    const user = userCredential.user;
+
+    // Create a guest profile in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      email: null,
+      displayName: `Guest-${user.uid.substring(0, 5)}`,
+      phoneNumber: "",
+      role: "guest",
+      isAnonymous: true,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    return user;
+  } catch (error) {
+    console.error("Error signing in as guest:", error);
+    throw error;
+  }
 };
 
 // Create a new user (admin function)
