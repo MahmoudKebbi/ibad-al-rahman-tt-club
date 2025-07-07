@@ -7,6 +7,7 @@ import {
   signInWithPopup,
   getAdditionalUserInfo,
   signInAnonymously,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./config";
@@ -126,39 +127,38 @@ export const signInAsGuest = async () => {
   }
 };
 
-// Create a new user (admin function)
 export const createUser = async (
   email,
-  password,
   displayName,
   role,
   phoneNumber = ""
 ) => {
-  try {
-    // Create user in Firebase Auth
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
-    const user = userCredential.user;
+  // Create random temporary password (never stored or seen)
+  const tempPassword = Math.random().toString(36).slice(-10);
 
-    // Store additional user data in Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
-      email,
-      displayName,
-      phoneNumber,
-      role,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+  // Create user with temporary password
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    tempPassword
+  );
+  const user = userCredential.user;
 
-    return user;
-  } catch (error) {
-    console.error("Error creating user:", error);
-    throw error;
-  }
+  // Send password reset email immediately
+  await sendPasswordResetEmail(auth, email);
+
+  // Store user data in Firestore
+  await setDoc(doc(db, "users", user.uid), {
+    uid: user.uid,
+    email,
+    displayName,
+    phoneNumber,
+    role,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return user;
 };
 
 // Update user role (admin function)
