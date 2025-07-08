@@ -20,9 +20,10 @@ export const signIn = async (email, password) => {
       email,
       password
     );
+    console.log("User signed in:", userCredential.user);
     return userCredential.user;
   } catch (error) {
-    console.error("Error signing in:", error);
+    console.error("Error signing in:", error.code, error.message);
     throw error;
   }
 };
