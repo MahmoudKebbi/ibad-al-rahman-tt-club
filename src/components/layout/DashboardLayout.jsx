@@ -25,7 +25,6 @@ const DashboardLayout = ({ children }) => {
   
   return (
     <div className="h-screen flex overflow-hidden bg-gray-100">
-      {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
           className="md:hidden fixed inset-0 z-30 bg-gray-600 bg-opacity-75 transition-opacity" 
@@ -33,10 +32,10 @@ const DashboardLayout = ({ children }) => {
         ></div>
       )}
 
-      {/* Sidebar */}
-      <div className={`md:flex md:flex-shrink-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out fixed md:relative z-40 md:z-auto inset-y-0 left-0 h-full`}>
-        <div className="flex flex-col w-64 bg-green-700 text-white">
-          {/* Sidebar header */}
+
+      <div className={`md:flex md:flex-shrink-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out fixed md:relative z-40 md:z-auto inset-y-0 left-0 h-screen`}>
+        <div className="flex flex-col w-64 bg-green-700 text-white h-full overflow-y-auto">
+
           <div className="h-16 flex items-center px-4 bg-green-800">
             <h2 className="text-xl font-bold">Ibad Al Rahman TTC</h2>
             <button 
@@ -49,7 +48,7 @@ const DashboardLayout = ({ children }) => {
             </button>
           </div>
 
-          {/* User info */}
+
           <div className="p-4 border-b border-green-600">
             <div className="flex items-center">
               <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
@@ -64,9 +63,9 @@ const DashboardLayout = ({ children }) => {
             </div>
           </div>
 
-          {/* Navigation */}
+
           <nav className="flex-1 px-2 py-4 overflow-y-auto">
-            {/* Admin Navigation */}
+
             {role === 'admin' && (
               <>
                 <Link 
@@ -118,7 +117,6 @@ const DashboardLayout = ({ children }) => {
               </>
             )}
 
-            {/* Member Navigation */}
             {role === 'member' && (
               <>
                 <Link 
@@ -160,7 +158,6 @@ const DashboardLayout = ({ children }) => {
               </>
             )}
 
-            {/* Guest Navigation */}
             {role === 'guest' && (
               <>
                 <Link 
@@ -193,7 +190,7 @@ const DashboardLayout = ({ children }) => {
               </>
             )}
 
-            {/* Sign Out (common for all roles) */}
+
             <div className="pt-4 mt-6 border-t border-green-600">
               <button 
                 onClick={handlelogout}
@@ -209,9 +206,9 @@ const DashboardLayout = ({ children }) => {
         </div>
       </div>
 
-      {/* Main content */}
+
       <div className="flex flex-col flex-1 w-0 overflow-hidden">
-        {/* Top header */}
+
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
           <button
             className="md:hidden px-4 text-gray-500 focus:outline-none"
@@ -238,7 +235,7 @@ const DashboardLayout = ({ children }) => {
           </div>
         </div>
 
-        {/* Main content area */}
+
         <main className="flex-1 relative overflow-y-auto focus:outline-none p-6">
           {children}
         </main>

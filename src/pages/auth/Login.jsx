@@ -263,7 +263,7 @@ const Login = () => {
 
 
         <p className="text-center text-sm text-gray-600 mt-8">
-          Don't have an account? <br className="tel: +96178761843" />Contact the club administrator.
+          Don't have an account? <br className="tel: +96178761843" />Contact the club administrator at <a href="tel:+96178761843" className="text-green-600 hover:text-green-500">+961 78 761843</a> to register.
         </p>
       </div>
     </div>
