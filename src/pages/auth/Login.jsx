@@ -21,16 +21,6 @@ const Login = () => {
   const { error, isAuthenticated, role } = useSelector(state => state.auth);
 
 
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      if (role === 'admin') navigate('/admin');
-      else if (role === 'member') navigate('/member');
-      else if (role === 'guest') navigate('/guest');
-    }
-  }, [isAuthenticated, role, navigate]);
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     

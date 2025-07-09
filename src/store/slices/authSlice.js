@@ -21,7 +21,7 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.user = action.payload.user;
       state.userData = action.payload.userData;
-      state.role = action.payload.userData?.role;
+      state.role = action.payload.role;
       state.error = null;
     },
     loginFailure: (state, action) => {

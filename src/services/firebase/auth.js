@@ -36,8 +36,9 @@ export const signInWithGoogle = async () => {
 
     // Check if this is the first time the user is signing in with Google
     const { isNewUser } = getAdditionalUserInfo(userCredential);
-
+    console.log("User signed in with Google:", userCredential.user);
     if (isNewUser) {
+      console.log("New user signed in with Google:", userCredential.user);
       await setDoc(doc(db, "users", userCredential.user.uid), {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
@@ -48,6 +49,8 @@ export const signInWithGoogle = async () => {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+
+      console.log("New user profile created in Firestore:", userCredential.user.uid);
     }
 
     return userCredential.user;
@@ -71,7 +74,13 @@ export const logout = async () => {
 // Get current user data from Firestore
 export const getCurrentUserData = async (uid) => {
   try {
+    console.log("Fetching user data for UID:", uid);
+    console.log("Firestore DB:", db);
+    console.log("Auth instance:", auth);
+
     const userRef = doc(db, "users", uid);
+    
+
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
@@ -91,6 +100,7 @@ export const subscribeToAuthChanges = (callback) => {
     if (user) {
       try {
         // Get additional user data from Firestore
+        console.log("User is authenticated:", user.uid);
         const userData = await getCurrentUserData(user.uid);
         callback({ user, userData, isAuthenticated: true });
       } catch (error) {

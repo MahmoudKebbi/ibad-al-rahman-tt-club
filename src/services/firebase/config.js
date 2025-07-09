@@ -1,10 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth"; // Import signOut and connectAuthEmulator
 import { getFirestore } from "firebase/firestore";
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -18,9 +15,37 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_MEASUREMENT_ID,
 };
 
+console.log("Firebase Config:", {
+  apiKey: firebaseConfig.apiKey,
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+  storageBucket: firebaseConfig.storageBucket,
+  messagingSenderId: firebaseConfig.messagingSenderId,
+  appId: firebaseConfig.appId,
+  measurementId: firebaseConfig.measurementId,
+});
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const auth = getAuth(app); // Use standard auth initialization without emulator
+let db;
+try {
+  db = getFirestore(app,"ibad-ttc-db");
+  console.log("Firestore initialized successfully");
+} catch (error) {
+  console.error("Error initializing Firestore:", error);
+}
 
+// Add after Firebase initialization
+const clearExistingAuth = async () => {
+  try {
+    await signOut(auth);
+    console.log("Previous authentication state cleared");
+  } catch (error) {
+    console.error("Error clearing auth state:", error);
+  }
+};
+
+// Call this function if needed
+clearExistingAuth();
+console.log("Firebase initialized successfully.");
 export { app, auth, db };
