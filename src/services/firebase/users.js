@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   setDoc,
+  deleteDoc,
   updateDoc,
   query,
   where,
@@ -148,3 +149,40 @@ export const changeUserRole = async (userId, newRole) => {
     return { success: false, error: error.message };
   }
 };
+
+export const getUserByRole = async (role) => {
+  try {
+    const usersRef = collection(db, "users");
+    const querySnapshot = await getDocs(query(usersRef, where("role", "==", role)));
+
+    const users = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate() || null,
+      updatedAt: doc.data().updatedAt?.toDate() || null,
+    }));
+
+    console.log("Users with role:", role, users);
+
+    return { success: true, users };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+export const deleteUser = async (userId) => {
+  try {
+    // Delete user document from Firestore
+    await deleteDoc(doc(db, "users", userId));
+
+    // If using Firebase Authentication, delete the user account
+    const user = auth.currentUser;
+    if (user && user.uid === userId) {
+      await user.delete();
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}

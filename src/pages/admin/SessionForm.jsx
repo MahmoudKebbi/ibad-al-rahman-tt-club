@@ -9,6 +9,8 @@ import FormButtonGroup from '../../components/form/FormButtonGroup';
 import AlertMessage from '../../components/common/AlertMessage';
 import { collection, addDoc, getDoc, updateDoc, doc, getDocs, query, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
+import { createSession, getAllSessions, updateSession } from '../../services/firebase/sessions';
+import { getUserByRole } from '../../services/firebase/users';
 
 const SessionForm = () => {
   const navigate = useNavigate();
@@ -53,21 +55,27 @@ const SessionForm = () => {
   useEffect(() => {
     const fetchCoaches = async () => {
       try {
-        // For a real implementation, query users with coach role
-        // const coachesQuery = query(collection(db, 'users'), where('role', '==', 'coach'));
-        // const snapshot = await getDocs(coachesQuery);
-        
-        // For demo, use placeholder data
-        const placeholderCoaches = [
-          { value: 'ahmed-hassan', label: 'Ahmed Hassan' },
-          { value: 'sarah-ahmed', label: 'Sarah Ahmed' },
-          { value: 'mohamed-ali', label: 'Mohamed Ali' },
-          { value: 'fatima-rahman', label: 'Fatima Rahman' }
-        ];
-        
-        setCoaches(placeholderCoaches);
+        const result = await getUserByRole("coach");
+    
+        if (result.success) {
+          const coaches = result.users; // Access the users array
+          console.log("Coaches:", coaches);
+    
+          // Format the coaches array for the SelectField component
+          const formattedCoaches = coaches.map((coach) => ({
+            value: coach.id, // Use the coach ID as the value
+            label: coach.displayName || coach.email, // Use displayName or email as the label
+          }));
+
+          
+          console.log("Formatted Coaches:", formattedCoaches);
+    
+          setCoaches(formattedCoaches);
+        } else {
+          console.error("Error fetching coaches:", result.error);
+        }
       } catch (error) {
-        console.error('Error fetching coaches:', error);
+        console.error("Error fetching coaches:", error);
       }
     };
     
@@ -79,37 +87,35 @@ const SessionForm = () => {
     const fetchSessionData = async () => {
       if (isEditMode) {
         try {
-          // For a real implementation, fetch from Firestore
-          // const sessionRef = doc(db, 'sessions', sessionId);
-          // const sessionSnap = await getDoc(sessionRef);
+          const {success,sessions} = getAllSessions();
           
-          // if (sessionSnap.exists()) {
-          //   const sessionData = sessionSnap.data();
-          //   setFormData({
-          //     ...sessionData,
-          //     date: sessionData.date.toDate().toISOString().split('T')[0],
-          //   });
-          // }
-          
-          // For demo, use placeholder data based on ID
-          if (sessionId.startsWith('upcoming')) {
-            const num = sessionId.split('-')[1];
-            const today = new Date();
-            const sessionDate = new Date(today);
-            sessionDate.setDate(today.getDate() + parseInt(num) * 2);
-            
-            setFormData({
-              title: `Regular Training Session ${num}`,
-              type: parseInt(num) % 3 === 0 ? 'advanced' : 'regular',
-              date: sessionDate.toISOString().split('T')[0],
-              startTime: '18:00',
-              endTime: '20:00',
-              coach: parseInt(num) % 2 === 0 ? 'ahmed-hassan' : 'sarah-ahmed',
-              maxParticipants: 20,
-              description: `Regular training session for all club members.`,
-              status: 'scheduled'
+          if (success && sessions.length > 0) {
+            const sessionData = sessions.find(session => session.id === sessionId);
+            if (sessionData) {
+              setFormData({
+                title: sessionData.title || '',
+                type: sessionData.type || '',
+                date: sessionData.date ? sessionData.date.toISOString().split('T')[0] : '',
+                startTime: sessionData.startTime || '',
+                endTime: sessionData.endTime || '',
+                coach: sessionData.coach || '',
+                maxParticipants: sessionData.maxParticipants || 20,
+                description: sessionData.description || '',
+                status: sessionData.status || 'scheduled'
+              });
+            } else {
+              setFormAlert({
+                type: 'error',
+                message: 'Session not found.'
+              });
+            }
+          } else {
+            setFormAlert({
+              type: 'error',
+              message: 'No sessions found. Please create a session first.'
             });
           }
+ 
         } catch (error) {
           console.error('Error fetching session data:', error);
           setFormAlert({
@@ -135,7 +141,7 @@ const SessionForm = () => {
       [name]: processedValue
     });
     
-    // Clear error for this field when changed
+
     if (formErrors[name]) {
       setFormErrors({
         ...formErrors,
@@ -144,11 +150,11 @@ const SessionForm = () => {
     }
   };
   
-  // Validate the form
+
   const validateForm = () => {
     const errors = {};
     
-    // Required fields
+
     const requiredFields = [
       'title', 'type', 'date', 'startTime', 
       'endTime', 'coach', 'maxParticipants'
@@ -174,11 +180,10 @@ const SessionForm = () => {
     return Object.keys(errors).length === 0;
   };
   
-  // Handle form submission
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate form
+
     if (!validateForm()) {
       setFormAlert({
         type: 'error',
@@ -191,7 +196,6 @@ const SessionForm = () => {
     setFormAlert(null);
     
     try {
-      // Prepare session data
       const sessionData = {
         ...formData,
         date: new Date(formData.date),
@@ -203,18 +207,17 @@ const SessionForm = () => {
       }
       
       if (isEditMode) {
-        // Update existing session
-        // For real implementation
-        // await updateDoc(doc(db, 'sessions', sessionId), sessionData);
+        // TODO Add real implementation
+
+        updateSession(sessionId, sessionData);
         
         setFormAlert({
           type: 'success',
           message: 'Session updated successfully!'
         });
       } else {
-        // Create new session
-        // For real implementation
-        // await addDoc(collection(db, 'sessions'), sessionData);
+        
+        createSession(sessionData)
         
         setFormAlert({
           type: 'success',

@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signOut } from "firebase/auth"; // Import signOut and connectAuthEmulator
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -26,16 +27,11 @@ console.log("Firebase Config:", {
 });
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); // Use standard auth initialization without emulator
-let db;
-try {
-  db = getFirestore(app,"ibad-ttc-db");
-  console.log("Firestore initialized successfully");
-} catch (error) {
-  console.error("Error initializing Firestore:", error);
-}
+const auth = getAuth(app); 
+const db = getFirestore(app,"ibad-ttc-db");
+const storage = getStorage(app);
 
-// Add after Firebase initialization
+
 const clearExistingAuth = async () => {
   try {
     await signOut(auth);
@@ -45,7 +41,7 @@ const clearExistingAuth = async () => {
   }
 };
 
-// Call this function if needed
+
 clearExistingAuth();
 console.log("Firebase initialized successfully.");
-export { app, auth, db };
+export { app, auth, db, storage};

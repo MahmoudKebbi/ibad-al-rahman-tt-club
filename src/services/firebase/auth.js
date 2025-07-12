@@ -1,4 +1,5 @@
 import {
+  firebase,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -8,6 +9,8 @@ import {
   getAdditionalUserInfo,
   signInAnonymously,
   sendPasswordResetEmail,
+  sendEmailVerification,
+  fetchSignInMethodsForEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "./config";
@@ -50,7 +53,10 @@ export const signInWithGoogle = async () => {
         updatedAt: serverTimestamp(),
       });
 
-      console.log("New user profile created in Firestore:", userCredential.user.uid);
+      console.log(
+        "New user profile created in Firestore:",
+        userCredential.user.uid
+      );
     }
 
     return userCredential.user;
@@ -79,7 +85,6 @@ export const getCurrentUserData = async (uid) => {
     console.log("Auth instance:", auth);
 
     const userRef = doc(db, "users", uid);
-    
 
     const userSnap = await getDoc(userRef);
 
@@ -113,16 +118,51 @@ export const subscribeToAuthChanges = (callback) => {
   });
 };
 
-// Anonymous (Guest) Sign In
-export const signInAsGuest = async () => {
+export const signInAsGuest = async (email, password) => {
   try {
-    const userCredential = await signInAnonymously(auth);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
     const user = userCredential.user;
+
+    console.log("Guest user signed in:", user);
+
+    return user;
+  } catch (error) {
+    console.error("Error signing in as guest:", error);
+    throw error;
+  }
+};
+
+export const checkEmailExists = async (email) => {
+  try {
+    const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+    console.log("Sign-in methods for email:", signInMethods);
+    return signInMethods.length > 0;
+  } catch (error) {
+    console.error("Error checking email existence:", error);
+    throw error;
+  }
+};
+
+export const signUpAsGuest = async (email, password) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+
+    await sendEmailVerification(auth.currentUser);
+    console.log("Guest user signed up:", user);
 
     // Create a guest profile in Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
-      email: null,
+      email: email,
       displayName: `Guest-${user.uid.substring(0, 5)}`,
       phoneNumber: "",
       role: "guest",

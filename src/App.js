@@ -35,12 +35,11 @@ import GuestDashboard from "./pages/guest/GuestDashboard";
 
 // Loading Screen Component
 import LoadingScreen from "./components/common/LoadingScreen";
+import GuestSignUp from "./pages/auth/GuestSignUp";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const { isAuthenticated, user, loading } = useSelector(
-    (state) => state.auth
-  );
+  const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
 
   if (loading) {
     // Show loading spinner while checking auth
@@ -52,7 +51,13 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   if (!isAuthenticated || !user) {
-    console.log("User", "************* ", user, "************ ", isAuthenticated);
+    console.log(
+      "User",
+      "************* ",
+      user,
+      "************ ",
+      isAuthenticated
+    );
     console.log(
       "User is not authenticated, redirecting to login",
       " ",
@@ -125,6 +130,12 @@ function App() {
   };
 
   return (
+    // <Router>
+    // <GuestSignUp />
+    // </Router>
+
+
+    // Uncomment the following code to enable routing
     <Router>
       <Routes>
         {/* Home route redirects based on auth state */}
@@ -255,6 +266,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="/admin/profile" element={<ProfileView />} />
+
 
         {/* Not Found */}
         <Route path="*" element={<NotFound />} />

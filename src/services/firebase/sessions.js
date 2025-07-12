@@ -13,12 +13,12 @@ import {
 } from "firebase/firestore";
 import { db } from "./config";
 
-// Get all sessions
+
 export const getAllSessions = async (filter = {}) => {
   try {
     let sessionsQuery = collection(db, "sessions");
 
-    // Apply filters
+
     if (filter.upcoming) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -39,12 +39,12 @@ export const getAllSessions = async (filter = {}) => {
       sessionsQuery = query(sessionsQuery, orderBy("date", "desc"));
     }
 
-    // Add coach filter if specified
+
     if (filter.coach) {
       sessionsQuery = query(sessionsQuery, where("coach", "==", filter.coach));
     }
 
-    // Add type filter if specified
+
     if (filter.type) {
       sessionsQuery = query(sessionsQuery, where("type", "==", filter.type));
     }
@@ -65,7 +65,7 @@ export const getAllSessions = async (filter = {}) => {
   }
 };
 
-// Get session by ID
+
 export const getSessionById = async (sessionId) => {
   try {
     const sessionDoc = await getDoc(doc(db, "sessions", sessionId));
@@ -88,22 +88,34 @@ export const getSessionById = async (sessionId) => {
   }
 };
 
-// Create new session
+/**
+ * Create a new session in Firestore.
+ * @param {Object} sessionData - The session data to be saved.
+ * @returns {Object} - Success status and session ID or error message.
+ */
 export const createSession = async (sessionData) => {
   try {
-    // Format date if it's a string
+
+    if (!sessionData.title || !sessionData.date || !sessionData.coach) {
+      throw new Error("Missing required fields: title, date, or coach");
+    }
+
+
     if (typeof sessionData.date === "string") {
       sessionData.date = new Date(sessionData.date);
     }
 
-    // Add timestamps
+
     sessionData.createdAt = serverTimestamp();
     sessionData.updatedAt = serverTimestamp();
 
+    // Write to Firestore
     const docRef = await addDoc(collection(db, "sessions"), sessionData);
 
+    console.log("Session created successfully:", docRef.id);
     return { success: true, id: docRef.id };
   } catch (error) {
+    console.error("Error creating session:", error.message);
     return { success: false, error: error.message };
   }
 };
