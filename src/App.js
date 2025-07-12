@@ -8,75 +8,61 @@ import {
 import { useSelector } from "react-redux";
 import "./App.css";
 
-// Custom hooks
 import useAuth from "./hooks/useAuth";
 
-// Auth Pages
 import Login from "./pages/auth/Login";
 import NotFound from "./pages/NotFound";
+import GuestSignUp from "./pages/auth/GuestSignUp";
 
-// Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import MembersManagement from "./pages/admin/MembersManagement";
 import MemberRegistrationForm from "./pages/admin/MemberRegistrationForm";
 import ScheduleManagement from "./pages/admin/ScheduleManagement";
 import SessionForm from "./pages/admin/SessionForm";
+import PaymentManagement from "./pages/admin/PaymentManagement";
 
-// Member Pages
+import PaymentRecordForm from "./components/admin/PaymentRecordForm";
+import PaymentReceipt from "./components/payment/PaymentReciept";
+
 import MemberDashboard from "./pages/member/MemberDashboard";
 import ScheduleView from "./pages/member/ScheduleView";
 import ProfileView from "./pages/member/ProfileView";
 import ProfileEdit from "./pages/member/ProfileEdit";
 import ChangePassword from "./pages/member/ChangePassword";
 import ProfilePhoto from "./pages/member/ProfilePhoto";
+import MemberPayments from "./pages/member/MemberPayments";
 
-// Guest Pages
 import GuestDashboard from "./pages/guest/GuestDashboard";
 
-// Loading Screen Component
 import LoadingScreen from "./components/common/LoadingScreen";
-import GuestSignUp from "./pages/auth/GuestSignUp";
 
-// Protected Route Component
+import AttendanceManagement from "./pages/admin/AttendanceManagement";
+import MemberCheckInPage from "./pages/admin/MemberCheckInPage";
+import AttendanceDetails from "./components/admin/AttendanceDetails";
+import MemberAttendance from "./pages/member/MemberAttendance";
+
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
 
   if (loading) {
-    // Show loading spinner while checking auth
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-      </div>
-    );
+    console.log("ProtectedRoute loading state:", loading);
+    console.log("ProtectedRoute state:", { loading, isAuthenticated, user });
+    return <LoadingScreen />;
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
-    console.log(
-      "User",
-      "************* ",
-      user,
-      "************ ",
-      isAuthenticated
-    );
-    console.log(
-      "User is not authenticated, redirecting to login",
-      " ",
-      user,
-      " ",
-      isAuthenticated
-    );
-    // Redirect to login if not authenticated
+    console.log("ProtectedRoute: User is not authenticated");
+    console.log("ProtectedRoute state:", { loading, isAuthenticated, user });
+    console.log("User is not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
 
-  // If roles are specified, check if user has an allowed role
+  // Check if the user's role is allowed
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    console.log(
-      "User role not allowed, redirecting based on role",
-      " ",
-      user.role
-    );
-    // Redirect to appropriate dashboard based on role
+    console.log("ProtectedRoute: User role not allowed");
+    console.log("ProtectedRoute state:", { loading, isAuthenticated, user });
+    console.log("User role not allowed, redirecting based on role");
     switch (user.role) {
       case "admin":
         return <Navigate to="/admin" replace />;
@@ -87,23 +73,20 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
   }
 
-  // User is authenticated and has an allowed role
   return children;
 };
 
 function App() {
-  // Use the auth hook to subscribe to authentication state
   useAuth();
 
   const { isAuthenticated, user, role, loading } = useSelector(
     (state) => state.auth
   );
 
-  // Helper function to redirect based on auth state and role
   const homeRouteRedirect = () => {
     console.log("homeRouteRedirect called with:", {
       isAuthenticated,
-      role, // Access role directly from state.auth.role
+      role,
       loading,
     });
 
@@ -112,10 +95,10 @@ function App() {
     }
 
     if (!isAuthenticated) {
+      console.log("User is not authenticated, redirecting to login");
       return <Navigate to="/login" replace />;
     }
 
-    // Use role directly from state.auth
     console.log(`User has role: ${role}, redirecting to /${role}`);
     switch (role) {
       case "admin":
@@ -130,150 +113,236 @@ function App() {
   };
 
   return (
-    // <Router>
-    // <GuestSignUp />
-    // </Router>
+    <Routes>
+      {/* Home route redirects based on auth state */}
+      <Route path="/" element={homeRouteRedirect()} />
 
+      {/* Auth Routes */}
+      <Route
+        path="/login"
+        element={isAuthenticated ? homeRouteRedirect() : <Login />}
+      />
+      <Route path="/signup" element={<GuestSignUp />} />
 
-    // Uncomment the following code to enable routing
-    <Router>
-      <Routes>
-        {/* Home route redirects based on auth state */}
-        <Route path="/" element={homeRouteRedirect()} />
+      {/* Admin Routes */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* Auth Routes */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? homeRouteRedirect() : <Login />}
-        />
+      {/* Admin - Members Management */}
+      <Route
+        path="/admin/members"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <MembersManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/members/new"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <MemberRegistrationForm />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* Admin - Schedule Management */}
+      <Route
+        path="/admin/schedule"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ScheduleManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/schedule/create"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <SessionForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/schedule/edit/:sessionId"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <SessionForm />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin/members"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <MembersManagement />
-            </ProtectedRoute>
-          }
-        />
+      {/* Admin - Payment Management */}
+      <Route
+        path="/admin/payments"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <PaymentManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/members/:memberId/payment"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <PaymentRecordForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/payments/:paymentId/receipt"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <PaymentReceipt />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin/members/new"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <MemberRegistrationForm />
-            </ProtectedRoute>
-          }
-        />
+      {/* Admin - Attendance Management */}
+      <Route
+        path="/admin/attendance"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AttendanceManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/attendance/checkin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <MemberCheckInPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/attendance/:attendanceId"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AttendanceDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/attendance/:attendanceId/checkout"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AttendanceDetails />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin/schedule"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <ScheduleManagement />
-            </ProtectedRoute>
-          }
-        />
+      {/* Admin - Profile */}
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ProfileView />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin/schedule/create"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <SessionForm />
-            </ProtectedRoute>
-          }
-        />
+      {/* Member Routes */}
+      <Route
+        path="/member"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <MemberDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/admin/schedule/edit/:sessionId"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <SessionForm />
-            </ProtectedRoute>
-          }
-        />
+      {/* Member - Schedule */}
+      <Route
+        path="/member/schedule"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <ScheduleView />
+          </ProtectedRoute>
+        }
+      />
 
-        {/* Member Routes */}
-        <Route
-          path="/member"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <MemberDashboard />
-            </ProtectedRoute>
-          }
-        />
+      {/* Member - Profile */}
+      <Route
+        path="/member/profile"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <ProfileView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/profile/edit"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <ProfileEdit />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/profile/password"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <ChangePassword />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/member/profile/photo"
+        element={
+          <ProtectedRoute allowedRoles={["member", "admin"]}>
+            <ProfilePhoto />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/member/schedule"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <ScheduleView />
-            </ProtectedRoute>
-          }
-        />
+      {/* Member - Payments */}
+      <Route
+        path="/member/payments"
+        element={
+          <ProtectedRoute allowedRoles={["member"]}>
+            <MemberPayments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment/receipt/:paymentId"
+        element={
+          <ProtectedRoute>
+            <PaymentReceipt />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/member/profile"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <ProfileView />
-            </ProtectedRoute>
-          }
-        />
+      {/* Member - Attendance */}
+      <Route
+        path="/member/attendance"
+        element={
+          <ProtectedRoute allowedRoles={["member"]}>
+            <MemberAttendance />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/member/profile/edit"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <ProfileEdit />
-            </ProtectedRoute>
-          }
-        />
+      {/* Guest Routes */}
+      <Route
+        path="/guest"
+        element={
+          <ProtectedRoute allowedRoles={["guest", "member", "admin"]}>
+            <GuestDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-        <Route
-          path="/member/profile/password"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <ChangePassword />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/member/profile/photo"
-          element={
-            <ProtectedRoute allowedRoles={["member", "admin"]}>
-              <ProfilePhoto />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Guest Routes */}
-        <Route
-          path="/guest"
-          element={
-            <ProtectedRoute allowedRoles={["guest", "member", "admin"]}>
-              <GuestDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/admin/profile" element={<ProfileView />} />
-
-
-        {/* Not Found */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Router>
+      {/* Not Found */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 
