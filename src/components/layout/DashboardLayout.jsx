@@ -225,13 +225,10 @@ const DashboardLayout = ({ children }) => {
                 {role === 'admin' && 'Admin Dashboard'}
                 {role === 'member' && 'Member Dashboard'}
                 {role === 'guest' && 'Guest Dashboard'}
+                {role === 'coach' && 'Coach Dashboard'}
               </h1>
             </div>
-            <div className="ml-4 flex items-center md:ml-6">
-              <div className="text-sm text-gray-500">
-                {currentDateTime}
-              </div>
-            </div>
+
           </div>
         </div>
 

@@ -1,6 +1,6 @@
-// Import the functions you need from the SDKs you need
+
 import { initializeApp } from "firebase/app";
-import { getAuth, signOut } from "firebase/auth"; // Import signOut and connectAuthEmulator
+import { getAuth, signOut } from "firebase/auth"; 
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 

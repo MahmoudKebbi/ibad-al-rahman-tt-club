@@ -4,8 +4,12 @@ import StatsCard from '../../components/dashboard/StatsCard';
 import PageHeader from '../../components/layout/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import ActionButton from '../../components/common/ActionButton';
+import ContentCard from '../../components/layout/ContentCard';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
+import { useNavigate } from 'react-router-dom';
+import { getAttendanceStats, getAllAttendanceRecords } from '../../services/firebase/attendance';
+import { formatTime, AttendanceStatus } from '../../models/Attendance';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -13,10 +17,15 @@ const AdminDashboard = () => {
     activeMembers: 0,
     scheduledSessions: 0,
     pendingPayments: 0,
+    todayAttendance: 0,
+    currentlyCheckedIn: 0
   });
   
   const [recentMembers, setRecentMembers] = useState([]);
+  const [recentAttendance, setRecentAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -44,13 +53,29 @@ const AdminDashboard = () => {
           createdAt: doc.data().createdAt?.toDate().toLocaleDateString() || 'N/A'
         }));
 
+        // Get today's date at midnight
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Fetch attendance statistics
+        const attendanceStats = await getAttendanceStats(today);
+        
+        // Fetch recent attendance records
+        const recentAttendanceData = await getAllAttendanceRecords({ 
+          limit: 5,
+          startDate: today
+        });
+        
+        setRecentAttendance(recentAttendanceData);
+        
         // Set data
         setStats({
           totalMembers,
           activeMembers,
-          // For demo purposes, using placeholder data for these
-          scheduledSessions: 12,
-          pendingPayments: 5,
+          scheduledSessions: 12, // For demo purposes
+          pendingPayments: 5,    // For demo purposes
+          todayAttendance: attendanceStats.totalAttendance,
+          currentlyCheckedIn: attendanceStats.checkedIn
         });
         
         setRecentMembers(recentMembersData);
@@ -63,6 +88,22 @@ const AdminDashboard = () => {
 
     fetchDashboardData();
   }, []);
+
+  const handleAddNewMember = () => {
+    navigate('/admin/members/new');
+  };
+
+  const handleScheduleSession = () => {
+    navigate('/admin/schedule/create');
+  };
+  
+  const handleCheckIn = () => {
+    navigate('/admin/attendance/checkin');
+  };
+  
+  const handleAttendanceManagement = () => {
+    navigate('/admin/attendance');
+  };
 
   // Define columns for the recent members table
   const memberColumns = [
@@ -115,6 +156,71 @@ const AdminDashboard = () => {
       field: 'createdAt'
     }
   ];
+  
+  // Define columns for the recent attendance table
+  const attendanceColumns = [
+    {
+      title: 'Member',
+      field: 'memberName',
+      render: (record) => (
+        <div className="text-sm font-medium text-green-600 cursor-pointer hover:underline"
+             onClick={() => navigate(`/admin/members/${record.memberId}`)}>
+          {record.memberName}
+        </div>
+      )
+    },
+    {
+      title: 'Check-In',
+      field: 'checkInTime',
+      render: (record) => formatTime(record.checkInTime)
+    },
+    {
+      title: 'Status',
+      field: 'status',
+      render: (record) => (
+        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+          record.status === AttendanceStatus.CHECKED_IN ? 'bg-green-100 text-green-800' : 
+          record.status === AttendanceStatus.CHECKED_OUT ? 'bg-blue-100 text-blue-800' : 
+          'bg-red-100 text-red-800'
+        }`}>
+          {record.status === AttendanceStatus.CHECKED_IN ? 'Checked In' : 
+           record.status === AttendanceStatus.CHECKED_OUT ? 'Checked Out' : 
+           'No Show'}
+        </span>
+      )
+    },
+    {
+      title: 'Type',
+      field: 'attendanceType',
+      render: (record) => (
+        <span className="capitalize">{record.attendanceType}</span>
+      )
+    },
+    {
+      title: 'Actions',
+      field: 'actions',
+      render: (record) => (
+        <div className="flex space-x-2">
+          {record.status === AttendanceStatus.CHECKED_IN && (
+            <ActionButton
+              size="sm"
+              color="red"
+              onClick={() => navigate(`/admin/attendance/${record.id}/checkout`)}
+            >
+              Check Out
+            </ActionButton>
+          )}
+          <ActionButton
+            size="sm"
+            color="blue"
+            onClick={() => navigate(`/admin/attendance/${record.id}`)}
+          >
+            Details
+          </ActionButton>
+        </div>
+      )
+    }
+  ];
 
   return (
     <DashboardLayout>
@@ -146,51 +252,68 @@ const AdminDashboard = () => {
           />
           
           <StatsCard 
-            title="Scheduled Sessions" 
-            value={loading ? '...' : stats.scheduledSessions}
+            title="Today's Attendance" 
+            value={loading ? '...' : stats.todayAttendance}
             icon={
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             }
             color="purple"
           />
           
           <StatsCard 
-            title="Pending Payments" 
-            value={loading ? '...' : stats.pendingPayments}
+            title="Currently Checked In" 
+            value={loading ? '...' : stats.currentlyCheckedIn}
             icon={
               <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             }
-            color="yellow"
+            color="green"
           />
         </div>
         
-        {/* Recent members */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Members</h3>
-          <DataTable 
-            columns={memberColumns}
-            data={recentMembers}
-            isLoading={loading}
-            emptyMessage="No members found"
-            footerContent={
-              <a href="/admin/members" className="text-sm font-medium text-green-600 hover:text-green-500">
-                View all members
-              </a>
-            }
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Recent members */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Members</h3>
+            <DataTable 
+              columns={memberColumns}
+              data={recentMembers}
+              isLoading={loading}
+              emptyMessage="No members found"
+              footerContent={
+                <a href="/admin/members" className="text-sm font-medium text-green-600 hover:text-green-500">
+                  View all members
+                </a>
+              }
+            />
+          </div>
+          
+          {/* Today's Attendance */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Attendance</h3>
+            <DataTable 
+              columns={attendanceColumns}
+              data={recentAttendance}
+              isLoading={loading}
+              emptyMessage="No attendance records for today"
+              footerContent={
+                <a href="/admin/attendance" className="text-sm font-medium text-green-600 hover:text-green-500">
+                  View all attendance records
+                </a>
+              }
+            />
+          </div>
         </div>
         
         {/* Quick actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <ContentCard title="Quick Actions">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <ActionButton
               color="green"
-              onClick={() => {/* Navigate to add member page */}}
+              onClick={handleAddNewMember}
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -202,7 +325,7 @@ const AdminDashboard = () => {
             
             <ActionButton
               color="blue"
-              onClick={() => {/* Navigate to schedule page */}}
+              onClick={handleScheduleSession}
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -214,17 +337,29 @@ const AdminDashboard = () => {
             
             <ActionButton
               color="purple"
-              onClick={() => {/* Generate report function */}}
+              onClick={handleCheckIn}
+              icon={
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              }
+            >
+              Member Check-In
+            </ActionButton>
+            
+            <ActionButton
+              color="red"
+              onClick={handleAttendanceManagement}
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               }
             >
-              Generate Report
+              Attendance Reports
             </ActionButton>
           </div>
-        </div>
+        </ContentCard>
       </div>
     </DashboardLayout>
   );
