@@ -1,70 +1,202 @@
-# Getting Started with Create React App
+# 🏓 Ibad Al Rahman Table Tennis Club Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Version:** 1.0.0  
+**Date:** July 12, 2025  
 
-## Available Scripts
+Welcome to the **Ibad Al Rahman Table Tennis Club Management System**, a modern web application designed to simplify and enhance the management of club activities, memberships, payments, and attendance. Whether you're an administrator, member, or guest, this system provides tailored features to meet your needs.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🔒 Authentication & User Management
+- Secure user authentication powered by Firebase
+- Role-based access control: **Admin**, **Member**, **Guest**
+- User profile management with photo upload
+- Password reset functionality
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 👥 Member Management
+- Register and manage member profiles
+- Track active/inactive membership statuses
+- Search and filter members with ease
 
-### `npm test`
+### 💳 Membership & Payment System
+- Multiple membership types: **1-day**, **2-day**, **3-day weekly**, **unlimited**
+- Payment tracking and history
+- Automatic membership expiration calculation
+- Receipt generation and printing
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 📅 Scheduling
+- Create and manage training sessions
+- Assign coaches to sessions
+- Calendar view for easy scheduling
 
-### `npm run build`
+### 📊 Dashboards
+- **Admin Dashboard:** Club statistics, recent members, attendance overview
+- **Member Dashboard:** Personal attendance, membership status, upcoming sessions
+- **Guest Dashboard:** Club information and registration options
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 📈 Reporting
+- Membership statistics
+- Attendance reports
+- Payment history
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🛠️ Technology Stack
 
-### `npm run eject`
+- **Frontend:** React.js, Redux, React Router
+- **UI Framework:** Tailwind CSS
+- **Backend/Database:** Firebase Firestore
+- **Authentication:** Firebase Authentication
+- **Storage:** Firebase Storage
+- **Hosting:** Firebase Hosting
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 📦 Installation & Setup
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Prerequisites
+- Node.js (v14.x or higher)
+- npm (v7.x or higher)
+- Firebase account
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Steps to Get Started
 
-## Learn More
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/ibad-al-rahman-ttc.git
+   cd ibad-al-rahman-ttc
+   ```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+3. **Set up environment variables**
+   Create a `.env` file in the root directory:
+   ```env
+   REACT_APP_FIREBASE_API_KEY=your_api_key
+   REACT_APP_FIREBASE_AUTH_DOMAIN=your_auth_domain
+   REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+   REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+   REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   REACT_APP_FIREBASE_APP_ID=your_app_id
+   ```
 
-### Code Splitting
+4. **Initialize Firestore**
+   Set up the following collections in your Firestore database:
+   - `users`: User authentication and basic information
+   - `memberProfiles`: Extended member details
+   - `membershipTypes`: Membership options
+   - `payments`: Payment records
+   - `attendance`: Attendance logs
+   - `sessions`: Training session schedules
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+5. **Run the application**
+   ```bash
+   npm start
+   ```
 
-### Analyzing the Bundle Size
+6. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+7. **Deploy to Firebase Hosting**
+   ```bash
+   firebase deploy
+   ```
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🗂️ Project Structure
 
-### Advanced Configuration
+```
+ibad-al-rahman-ttc/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── admin/         # Admin-specific components
+│   │   ├── common/        # Shared UI components
+│   │   ├── dashboard/     # Dashboard components
+│   │   ├── layout/        # Layout components
+│   │   ├── member/        # Member-specific components
+│   │   ├── payment/       # Payment-related components
+│   │   └── ui/            # Basic UI elements
+│   ├── hooks/             # Custom React hooks
+│   ├── models/            # Data models and utilities
+│   ├── pages/
+│   │   ├── admin/         # Admin pages
+│   │   ├── auth/          # Authentication pages
+│   │   ├── guest/         # Guest pages
+│   │   └── member/        # Member pages
+│   ├── services/
+│   │   ├── firebase/      # Firebase service connectors
+│   │   └── api/           # API utilities
+│   ├── store/             # Redux store configuration
+│   │   ├── actions/       # Redux actions
+│   │   ├── reducers/      # Redux reducers
+│   │   └── slices/        # Redux Toolkit slices
+│   ├── styles/            # Global styles
+│   ├── utils/             # Utility functions
+│   ├── App.js             # Main App component
+│   ├── index.js           # Entry point
+│   └── routes.js          # Route definitions
+└── package.json
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 🧑‍💻 Usage Guide
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Admin Access
+Administrators have full access to manage:
+- **Dashboard:** Club statistics, quick actions, recent members
+- **Members:** Add, edit, activate/deactivate memberships
+- **Payments:** Record payments, view history, generate receipts
+- **Attendance:** Check-in/out members, view history, generate reports
+- **Schedule:** Create sessions, assign coaches, manage schedules
 
-### `npm run build` fails to minify
+### Member Access
+Members can:
+- **Dashboard:** View membership status, upcoming sessions, attendance stats
+- **Profile:** Update personal info, change password, upload profile photo
+- **Attendance:** View history and usage stats
+- **Payments:** View payment history and download receipts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Guest Access
+Guests can:
+- **Dashboard:** View club information and registration options
+
+---
+
+## 🌟 Future Enhancements
+
+1. Mobile app with QR code check-in
+2. Online payment processing
+3. Automated notifications and reminders
+4. Equipment inventory management
+5. Tournament and competition management
+6. Advanced analytics and reporting
+
+---
+
+## 📷 Screenshots
+
+### Login Page
+![Login Page Preview](docs/images/login-preview.png)
+
+### Dashboard
+![Dashboard Preview](docs/images/dashboard-preview.png)
+
+### Payment Management
+
+![Payment Management](docs/images/payment-management-preview.png)
+
+### Schedule Management
+
+![Schedule Management](docs/images/schedule-management-preview.png)
+
+---
