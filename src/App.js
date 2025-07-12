@@ -21,7 +21,7 @@ import ScheduleManagement from "./pages/admin/ScheduleManagement";
 import SessionForm from "./pages/admin/SessionForm";
 import PaymentManagement from "./pages/admin/PaymentManagement";
 
-import PaymentRecordForm from "./components/admin/PaymentRecordForm";
+import PaymentRecordForm from "./pages/admin/PaymentRecordForm";
 import PaymentReceipt from "./components/payment/PaymentReciept";
 
 import MemberDashboard from "./pages/member/MemberDashboard";

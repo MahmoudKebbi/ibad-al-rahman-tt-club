@@ -1,275 +1,179 @@
 import {
   collection,
   doc,
-  getDoc,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
   query,
   where,
   orderBy,
+  Timestamp,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "./config";
 
-
-export const getAllSessions = async (filter = {}) => {
+/**
+ * Get all sessions with optional filtering
+ * @param {Object} filters - Optional filters (startDate, endDate, type, etc.)
+ * @returns {Promise<Array>} - List of session objects
+ */
+export const getAllSessions = async (filters = {}) => {
   try {
-    let sessionsQuery = collection(db, "sessions");
+    let sessionsQuery = query(
+      collection(db, "sessions"),
+      orderBy("date", "asc")
+    );
 
 
-    if (filter.upcoming) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      sessionsQuery = query(
-        sessionsQuery,
-        where("date", ">=", today),
-        orderBy("date", "asc")
-      );
-    } else if (filter.past) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      sessionsQuery = query(
-        sessionsQuery,
-        where("date", "<", today),
-        orderBy("date", "desc")
-      );
-    } else {
-      sessionsQuery = query(sessionsQuery, orderBy("date", "desc"));
+    if (filters.startDate) {
+      const startTimestamp = Timestamp.fromDate(filters.startDate);
+      sessionsQuery = query(sessionsQuery, where("date", ">=", startTimestamp));
+    }
+
+    if (filters.endDate) {
+      const endTimestamp = Timestamp.fromDate(filters.endDate);
+      sessionsQuery = query(sessionsQuery, where("date", "<=", endTimestamp));
+    }
+
+    if (filters.type) {
+      sessionsQuery = query(sessionsQuery, where("type", "==", filters.type));
     }
 
 
-    if (filter.coach) {
-      sessionsQuery = query(sessionsQuery, where("coach", "==", filter.coach));
+    if (filters.coach) {
+      sessionsQuery = query(sessionsQuery, where("coach", "==", filters.coach));
     }
 
+    const snapshot = await getDocs(sessionsQuery);
 
-    if (filter.type) {
-      sessionsQuery = query(sessionsQuery, where("type", "==", filter.type));
-    }
-
-    const querySnapshot = await getDocs(sessionsQuery);
-
-    const sessions = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      date: doc.data().date?.toDate() || null,
-      createdAt: doc.data().createdAt?.toDate() || null,
-      updatedAt: doc.data().updatedAt?.toDate() || null,
-    }));
-
-    return { success: true, sessions };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-
-export const getSessionById = async (sessionId) => {
-  try {
-    const sessionDoc = await getDoc(doc(db, "sessions", sessionId));
-
-    if (sessionDoc.exists()) {
-      const sessionData = {
-        id: sessionDoc.id,
-        ...sessionDoc.data(),
-        date: sessionDoc.data().date?.toDate() || null,
-        createdAt: sessionDoc.data().createdAt?.toDate() || null,
-        updatedAt: sessionDoc.data().updatedAt?.toDate() || null,
+    return snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.displayName,
+        ...data,
+        date: data.date?.toDate
+          ? data.date.toDate().toISOString().split("T")[0]
+          : data.date,
       };
-
-      return { success: true, sessionData };
-    } else {
-      return { success: false, error: "Session not found" };
-    }
+    });
+    
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error("Error fetching sessions:", error);
+    throw error;
   }
 };
 
 /**
- * Create a new session in Firestore.
- * @param {Object} sessionData - The session data to be saved.
- * @returns {Object} - Success status and session ID or error message.
+ * Get a single session by ID
+ * @param {string} sessionId - The session ID
+ * @returns {Promise<Object>} - Session object
  */
-export const createSession = async (sessionData) => {
+export const getSessionById = async (sessionId) => {
   try {
+    const sessionDoc = await getDoc(doc(db, "sessions", sessionId));
 
-    if (!sessionData.title || !sessionData.date || !sessionData.coach) {
-      throw new Error("Missing required fields: title, date, or coach");
+    if (!sessionDoc.exists()) {
+      throw new Error("Session not found");
     }
 
+    const sessionData = sessionDoc.data();
 
-    if (typeof sessionData.date === "string") {
-      sessionData.date = new Date(sessionData.date);
-    }
-
-
-    sessionData.createdAt = serverTimestamp();
-    sessionData.updatedAt = serverTimestamp();
-
-    // Write to Firestore
-    const docRef = await addDoc(collection(db, "sessions"), sessionData);
-
-    console.log("Session created successfully:", docRef.id);
-    return { success: true, id: docRef.id };
+    return {
+      id: sessionDoc.id,
+      ...sessionData,
+      date: sessionData.date?.toDate
+        ? sessionData.date.toDate().toISOString().split("T")[0]
+        : sessionData.date,
+    };
   } catch (error) {
-    console.error("Error creating session:", error.message);
-    return { success: false, error: error.message };
+    console.error("Error fetching session:", error);
+    throw error;
   }
 };
 
-// Update session
+/**
+ * Create a new session
+ * @param {Object} sessionData - Session data
+ * @returns {Promise<Object>} - Created session
+ */
+export const createSession = async (sessionData) => {
+  try {
+    const dateObj = new Date(sessionData.date);
+
+    const sessionToCreate = {
+      ...sessionData,
+      date: Timestamp.fromDate(dateObj),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, "sessions"), sessionToCreate);
+
+    return {
+      id: docRef.id,
+      ...sessionData,
+    };
+  } catch (error) {
+    console.error("Error creating session:", error);
+    throw error;
+  }
+};
+
+/**
+ * Update an existing session
+ * @param {string} sessionId - The session ID
+ * @param {Object} sessionData - Updated session data
+ * @returns {Promise<Object>} - Updated session
+ */
 export const updateSession = async (sessionId, sessionData) => {
   try {
     const sessionRef = doc(db, "sessions", sessionId);
 
-    // Format date if it's a string
-    if (typeof sessionData.date === "string") {
-      sessionData.date = new Date(sessionData.date);
+    let updateData = { ...sessionData, updatedAt: serverTimestamp() };
+
+    if (sessionData.date) {
+      const dateObj = new Date(sessionData.date);
+      updateData.date = Timestamp.fromDate(dateObj);
     }
 
-    // Add timestamp
-    sessionData.updatedAt = serverTimestamp();
+    await updateDoc(sessionRef, updateData);
 
-    await updateDoc(sessionRef, sessionData);
-
-    return { success: true };
+    return {
+      id: sessionId,
+      ...sessionData,
+    };
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error("Error updating session:", error);
+    throw error;
   }
 };
 
-// Delete session
+/**
+ * Delete a session
+ * @param {string} sessionId - The session ID
+ * @returns {Promise<void>}
+ */
 export const deleteSession = async (sessionId) => {
   try {
-    await deleteDoc(doc(db, "sessions", sessionId));
-
-    return { success: true };
+    const sessionRef = doc(db, "sessions", sessionId);
+    await deleteDoc(sessionRef);
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error("Error deleting session:", error);
+    throw error;
   }
 };
 
-// Get sessions for specific date range
-export const getSessionsByDateRange = async (startDate, endDate) => {
-  try {
-    const sessionsQuery = query(
-      collection(db, "sessions"),
-      where("date", ">=", startDate),
-      where("date", "<=", endDate),
-      orderBy("date", "asc")
-    );
-
-    const querySnapshot = await getDocs(sessionsQuery);
-
-    const sessions = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      date: doc.data().date?.toDate() || null,
-      createdAt: doc.data().createdAt?.toDate() || null,
-      updatedAt: doc.data().updatedAt?.toDate() || null,
-    }));
-
-    return { success: true, sessions };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-// Register user for session
-export const registerForSession = async (sessionId, userId) => {
-  try {
-    // First check if session exists and has space
-    const { success, sessionData, error } = await getSessionById(sessionId);
-
-    if (!success) {
-      return { success: false, error };
-    }
-
-    // Check if session is full
-    const participants = sessionData.participants || [];
-    if (participants.length >= sessionData.maxParticipants) {
-      return { success: false, error: "Session is full" };
-    }
-
-    // Check if user is already registered
-    if (participants.includes(userId)) {
-      return {
-        success: false,
-        error: "User already registered for this session",
-      };
-    }
-
-    // Add user to participants
-    participants.push(userId);
-
-    // Update session
-    await updateDoc(doc(db, "sessions", sessionId), {
-      participants,
-      updatedAt: serverTimestamp(),
-    });
-
-    // Also create a registration record
-    await addDoc(collection(db, "sessionRegistrations"), {
-      sessionId,
-      userId,
-      registeredAt: serverTimestamp(),
-      status: "confirmed",
-    });
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-// Cancel registration
-export const cancelRegistration = async (sessionId, userId) => {
-  try {
-    // First check if session exists
-    const { success, sessionData, error } = await getSessionById(sessionId);
-
-    if (!success) {
-      return { success: false, error };
-    }
-
-    // Check if user is registered
-    const participants = sessionData.participants || [];
-    if (!participants.includes(userId)) {
-      return { success: false, error: "User not registered for this session" };
-    }
-
-    // Remove user from participants
-    const updatedParticipants = participants.filter((id) => id !== userId);
-
-    // Update session
-    await updateDoc(doc(db, "sessions", sessionId), {
-      participants: updatedParticipants,
-      updatedAt: serverTimestamp(),
-    });
-
-    // Find and update registration record
-    const registrationsQuery = query(
-      collection(db, "sessionRegistrations"),
-      where("sessionId", "==", sessionId),
-      where("userId", "==", userId),
-      where("status", "==", "confirmed")
-    );
-
-    const querySnapshot = await getDocs(registrationsQuery);
-
-    if (!querySnapshot.empty) {
-      const registrationDoc = querySnapshot.docs[0];
-      await updateDoc(doc(db, "sessionRegistrations", registrationDoc.id), {
-        status: "cancelled",
-        updatedAt: serverTimestamp(),
-      });
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+/**
+ * Get sessions for a specific date range (for calendar)
+ * @param {Date} startDate - Start date
+ * @param {Date} endDate - End date
+ * @returns {Promise<Array>} - List of sessions
+ */
+export const getSessionsForDateRange = async (startDate, endDate) => {
+  return getAllSessions({
+    startDate,
+    endDate,
+  });
 };
