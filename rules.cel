@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isMember() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'member';
+    }
+    
+    function isGuest() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'guest';
+    }
+    
+    function isCoach(){
+    	return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coach';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isVerified(){
+    	return isAuthenticated() && request.auth.email_verified == true;
+    }
+    
+    // Rules for Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+    
+    // Rules for Member Profiles
+    match /memberProfiles/{profileId} {
+      allow read: if isAuthenticated() && (isOwner(profileId) || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Rules for Tables
+    match /tables/{tableId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Rules for Bookings
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() || 
+        (resource.data.userId == request.auth.uid && 
+         resource.data.status == 'confirmed')
+      );
+    }
+    
+    // Rules for Coaching Sessions
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Rules for Coaching Bookings
+    match /coachingBookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        isMember() || 
+        resource.data.userId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && isMember();
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() || 
+        (resource.data.userId == request.auth.uid && 
+         resource.data.status == 'confirmed')
+      );
+    }
+    
+    // Rules for Payments
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.userId == request.auth.uid
+      );
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Rules for Subscription Plans
+    match /subscriptionPlans/{planId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    
+    
+    // Rules for Member Attendance
+    match /attendance/{attendanceId} {
+      // Only admins can create, update, or delete attendance records
+      allow read, create, update, delete: if isAdmin();
+      
+      // Members can read their own attendance records, admins can read all
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        resource.data.memberId == request.auth.uid
+      );
+    }
+    
+    
+    
+  }
+}

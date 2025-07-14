@@ -4,15 +4,18 @@ import PageHeader from '../../components/layout/PageHeader';
 import SearchAndFilter from '../../components/common/SearchAndFilter';
 import DataTable from '../../components/common/DataTable';
 import ActionButton from '../../components/common/ActionButton';
+import AlertMessage from '../../components/common/AlertMessage'; // Import AlertMessage
 import { collection, getDocs, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../services/firebase/config';
 import { useNavigate } from 'react-router-dom';
+import { deleteUser } from '../../services/firebase/users';
 
 const MembersManagement = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
+  const [alert, setAlert] = useState(null); // State for alert messages
 
   const navigate = useNavigate();
 
@@ -23,6 +26,17 @@ const MembersManagement = () => {
     { value: 'guest', label: 'Guest' }
   ];
 
+  const handleDeleteMember = async (memberId) => {
+    try {
+      await deleteUser(memberId);
+      setMembers(members.filter(member => member.id !== memberId));
+      setAlert({ type: 'success', message: 'Member deleted successfully!' }); // Success alert
+    } catch (error) {
+      console.error('Error deleting member:', error);
+      setAlert({ type: 'error', message: 'Failed to delete member. Please try again.' }); // Error alert
+    }
+  };
+
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -30,13 +44,13 @@ const MembersManagement = () => {
         const usersRef = collection(db, 'users');
         const q = query(usersRef, orderBy('displayName'));
         const querySnapshot = await getDocs(q);
-        
+
         const membersData = querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
           createdAt: doc.data().createdAt?.toDate().toLocaleDateString() || 'N/A'
         }));
-        
+
         setMembers(membersData);
       } catch (error) {
         console.error('Error fetching members:', error);
@@ -48,7 +62,6 @@ const MembersManagement = () => {
     fetchMembers();
   }, []);
 
-
   const filteredMembers = members.filter(member => {
     const matchesSearch = member.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                            member.email?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -58,7 +71,6 @@ const MembersManagement = () => {
     return matchesSearch && matchesRole;
   });
 
-  // Function to change user role
   const handleRoleChange = async (userId, newRole) => {
     try {
       const userRef = doc(db, 'users', userId);
@@ -66,30 +78,25 @@ const MembersManagement = () => {
         role: newRole,
         updatedAt: new Date()
       });
-      
-      // Update local state
+
       setMembers(members.map(member => 
         member.id === userId ? { ...member, role: newRole } : member
       ));
+      setAlert({ type: 'success', message: 'Role updated successfully!' }); // Success alert
     } catch (error) {
       console.error('Error updating role:', error);
-      alert('Failed to update role. Please try again.');
+      setAlert({ type: 'error', message: 'Failed to update role. Please try again.' }); // Error alert
     }
   };
 
   const handleAddNewMember = () => {
     try {
-    // Navigate to add new member page
-    navigate('/admin/members/new');
+      navigate('/admin/members/new');
     } catch (error) {
       console.error('Error navigating to add new member:', error);
     }
-  }
+  };
 
-
-
-
-  // Define columns for the members table
   const columns = [
     {
       title: 'Name',
@@ -160,11 +167,29 @@ const MembersManagement = () => {
           >
             View
           </ActionButton>
+          <ActionButton
+            color="green" 
+            size="sm"
+            onClick={() => navigate(`/admin/members/${member.id}/payment`)}
+          >
+            Record Payment
+          </ActionButton>
+          <ActionButton
+            color="red"
+            size="sm"
+            onClick={() => handleDeleteMember(member.id)}
+          >
+            Delete
+          </ActionButton>
         </div>
       ),
       className: 'text-right'
     }
   ];
+
+  useEffect(() => {
+    console.log("Alert state:", alert);
+  }, [alert]);
 
   return (
     <DashboardLayout>
@@ -179,6 +204,16 @@ const MembersManagement = () => {
             placeholder="Search members..."
           />
         </PageHeader>
+
+        {/* Alert Message */}
+        {alert && (
+          <AlertMessage 
+            type={alert.type} 
+            message={alert.message} 
+            onClose={() => setAlert(null)} 
+            autoClose 
+          />
+        )}
 
         <div className="mb-4 flex justify-end">
           <ActionButton

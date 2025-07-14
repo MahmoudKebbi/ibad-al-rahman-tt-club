@@ -4,15 +4,6 @@ import PageHeader from '../../components/layout/PageHeader';
 import ContentCard from '../../components/layout/ContentCard';
 import CalendarView from '../../components/schedule/CalendarView';
 import DataTable from '../../components/common/DataTable';
-import { 
-  collection, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '../../services/firebase/config';
 import { getAllSessions } from '../../services/firebase/sessions';
 
 const ScheduleView = () => {
@@ -35,6 +26,8 @@ const ScheduleView = () => {
         const sessionsData = await getAllSessions({
           startDate: today
         });
+
+        console.log('Fetched Sessions:', sessionsData);
         
         // Sort sessions by date and time
         const sortedSessions = sessionsData.sort((a, b) => {
@@ -49,7 +42,6 @@ const ScheduleView = () => {
           // If same date, compare start times
           return a.startTime.localeCompare(b.startTime);
         });
-        console.log('Sorted Sessions:', sortedSessions);
         setSessions(sortedSessions);
       } catch (error) {
         console.error('Error fetching sessions:', error);
