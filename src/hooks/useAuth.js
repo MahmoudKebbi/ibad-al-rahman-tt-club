@@ -53,14 +53,14 @@ export const useAuth = () => {
             },
             userData: processedUserData,
             role: processedUserData?.role || "guest", // Keep top-level role
-          })
+          }),
         );
         console.log("User authenticated:", userData.role);
       } else if (authState.error) {
         // Authentication error occurred
         console.error("Auth error:", authState.error);
         dispatch(
-          loginFailure(authState.error.message || "Authentication error")
+          loginFailure(authState.error.message || "Authentication error"),
         );
       } else {
         // User is not authenticated

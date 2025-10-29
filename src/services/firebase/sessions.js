@@ -23,9 +23,8 @@ export const getAllSessions = async (filters = {}) => {
   try {
     let sessionsQuery = query(
       collection(db, "sessions"),
-      orderBy("date", "asc")
+      orderBy("date", "asc"),
     );
-
 
     if (filters.startDate) {
       const startTimestamp = Timestamp.fromDate(filters.startDate);
@@ -40,7 +39,6 @@ export const getAllSessions = async (filters = {}) => {
     if (filters.type) {
       sessionsQuery = query(sessionsQuery, where("type", "==", filters.type));
     }
-
 
     if (filters.coach) {
       sessionsQuery = query(sessionsQuery, where("coach", "==", filters.coach));
@@ -58,7 +56,6 @@ export const getAllSessions = async (filters = {}) => {
           : data.date,
       };
     });
-    
   } catch (error) {
     console.error("Error fetching sessions:", error);
     throw error;

@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 
-const DataTable = ({ 
-  columns, 
-  data, 
-  isLoading, 
-  emptyMessage = 'No data available',
-  footerContent
+const DataTable = ({
+  columns,
+  data,
+  isLoading,
+  emptyMessage = "No data available",
+  footerContent,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -24,7 +24,7 @@ const DataTable = ({
               ))}
             </tr>
           </thead>
-          
+
           {/* Table Body */}
           <tbody className="bg-white divide-y divide-gray-200">
             {/* Loading State */}
@@ -42,10 +42,7 @@ const DataTable = ({
               data.map((row, rowIndex) => (
                 <tr key={rowIndex}>
                   {columns.map((column, colIndex) => (
-                    <td 
-                      key={colIndex} 
-                      className="px-6 py-4 whitespace-nowrap"
-                    >
+                    <td key={colIndex} className="px-6 py-4 whitespace-nowrap">
                       {/* Use custom render function if provided, otherwise show raw data */}
                       {column.render ? column.render(row) : row[column.field]}
                     </td>
@@ -55,7 +52,10 @@ const DataTable = ({
             ) : (
               /* Empty State */
               <tr>
-                <td colSpan={columns.length} className="px-6 py-4 text-center text-gray-500">
+                <td
+                  colSpan={columns.length}
+                  className="px-6 py-4 text-center text-gray-500"
+                >
                   {emptyMessage}
                 </td>
               </tr>
@@ -63,7 +63,7 @@ const DataTable = ({
           </tbody>
         </table>
       </div>
-      
+
       {/* Optional Footer */}
       {footerContent && (
         <div className="px-6 py-4 border-t border-gray-200">

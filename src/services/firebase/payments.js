@@ -22,14 +22,13 @@ import {
 export const recordMembershipPayment = async (
   memberId,
   membershipTypeId,
-  paymentData
+  paymentData,
 ) => {
   try {
     const membershipDetails = getMembershipById(membershipTypeId);
     if (!membershipDetails) {
       throw new Error(`Invalid membership type: ${membershipTypeId}`);
     }
-
 
     const userRef = doc(db, "users", memberId);
     const userSnap = await getDoc(userRef);
@@ -52,7 +51,7 @@ export const recordMembershipPayment = async (
     const paymentDate = paymentData.paymentDate || new Date();
     const expirationDate = calculateMembershipExpiration(
       membershipTypeId,
-      paymentDate
+      paymentDate,
     );
 
     const paymentRecord = {
@@ -116,7 +115,7 @@ export const getMemberPayments = async (memberId) => {
     const paymentsQuery = query(
       collection(db, "payments"),
       where("memberId", "==", memberId),
-      orderBy("paymentDate", "desc")
+      orderBy("paymentDate", "desc"),
     );
 
     const querySnapshot = await getDocs(paymentsQuery);
@@ -150,7 +149,7 @@ export const getAllPayments = async () => {
   try {
     const paymentsQuery = query(
       collection(db, "payments"),
-      orderBy("paymentDate", "desc")
+      orderBy("paymentDate", "desc"),
     );
 
     const querySnapshot = await getDocs(paymentsQuery);

@@ -109,7 +109,7 @@ export const getUserMembership = async (userId) => {
       collection(db, "memberships"),
       where("userId", "==", userId),
       orderBy("startDate", "desc"),
-      limit(1)
+      limit(1),
     );
 
     const querySnapshot = await getDocs(membershipQuery);
@@ -153,7 +153,9 @@ export const changeUserRole = async (userId, newRole) => {
 export const getUserByRole = async (role) => {
   try {
     const usersRef = collection(db, "users");
-    const querySnapshot = await getDocs(query(usersRef, where("role", "==", role)));
+    const querySnapshot = await getDocs(
+      query(usersRef, where("role", "==", role)),
+    );
 
     const users = querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -168,7 +170,7 @@ export const getUserByRole = async (role) => {
   } catch (error) {
     return { success: false, error: error.message };
   }
-}
+};
 
 export const deleteUser = async (userId) => {
   try {
@@ -185,4 +187,4 @@ export const deleteUser = async (userId) => {
   } catch (error) {
     return { success: false, error: error.message };
   }
-}
+};

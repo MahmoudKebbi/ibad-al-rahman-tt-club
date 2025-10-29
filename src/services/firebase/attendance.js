@@ -66,7 +66,7 @@ export const checkInMember = async (memberId, checkInData = {}) => {
     // Add to attendance collection
     const attendanceRef = await addDoc(
       collection(db, "attendance"),
-      attendanceData
+      attendanceData,
     );
 
     // Update member profile
@@ -162,7 +162,7 @@ export const getAllAttendanceRecords = async (filters = {}) => {
   try {
     let attendanceQuery = query(
       collection(db, "attendance"),
-      orderBy("checkInTime", "desc")
+      orderBy("checkInTime", "desc"),
     );
 
     // Apply date range filter
@@ -170,7 +170,7 @@ export const getAllAttendanceRecords = async (filters = {}) => {
       attendanceQuery = query(
         attendanceQuery,
         where("checkInTime", ">=", filters.startDate),
-        where("checkInTime", "<=", filters.endDate)
+        where("checkInTime", "<=", filters.endDate),
       );
     }
 
@@ -178,7 +178,7 @@ export const getAllAttendanceRecords = async (filters = {}) => {
     if (filters.memberId) {
       attendanceQuery = query(
         attendanceQuery,
-        where("memberId", "==", filters.memberId)
+        where("memberId", "==", filters.memberId),
       );
     }
 
@@ -186,7 +186,7 @@ export const getAllAttendanceRecords = async (filters = {}) => {
     if (filters.status) {
       attendanceQuery = query(
         attendanceQuery,
-        where("status", "==", filters.status)
+        where("status", "==", filters.status),
       );
     }
 
@@ -232,7 +232,7 @@ export const getMemberAttendanceRecords = async (memberId, filters = {}) => {
     let attendanceQuery = query(
       collection(db, "attendance"),
       where("memberId", "==", memberId),
-      orderBy("checkInTime", "desc")
+      orderBy("checkInTime", "desc"),
     );
 
     // Apply date range filter
@@ -240,7 +240,7 @@ export const getMemberAttendanceRecords = async (memberId, filters = {}) => {
       attendanceQuery = query(
         attendanceQuery,
         where("checkInTime", ">=", filters.startDate),
-        where("checkInTime", "<=", filters.endDate)
+        where("checkInTime", "<=", filters.endDate),
       );
     }
 
@@ -248,7 +248,7 @@ export const getMemberAttendanceRecords = async (memberId, filters = {}) => {
     if (filters.status) {
       attendanceQuery = query(
         attendanceQuery,
-        where("status", "==", filters.status)
+        where("status", "==", filters.status),
       );
     }
 
@@ -309,7 +309,7 @@ export const getCurrentAttendance = async (memberId) => {
     const attendanceRef = doc(
       db,
       "attendance",
-      memberProfile.currentAttendanceId
+      memberProfile.currentAttendanceId,
     );
     const attendanceSnap = await getDoc(attendanceRef);
 
@@ -350,13 +350,13 @@ export const getCurrentAttendance = async (memberId) => {
  */
 export const getAttendanceStats = async (
   startDate = new Date(0),
-  endDate = new Date()
+  endDate = new Date(),
 ) => {
   try {
     const attendanceQuery = query(
       collection(db, "attendance"),
       where("checkInTime", ">=", startDate),
-      where("checkInTime", "<=", endDate)
+      where("checkInTime", "<=", endDate),
     );
 
     const querySnapshot = await getDocs(attendanceQuery);
@@ -369,13 +369,13 @@ export const getAttendanceStats = async (
     // Calculate statistics
     const totalAttendance = records.length;
     const checkedIn = records.filter(
-      (r) => r.status === AttendanceStatus.CHECKED_IN
+      (r) => r.status === AttendanceStatus.CHECKED_IN,
     ).length;
     const checkedOut = records.filter(
-      (r) => r.status === AttendanceStatus.CHECKED_OUT
+      (r) => r.status === AttendanceStatus.CHECKED_OUT,
     ).length;
     const noShows = records.filter(
-      (r) => r.status === AttendanceStatus.NO_SHOW
+      (r) => r.status === AttendanceStatus.NO_SHOW,
     ).length;
 
     // Count unique members

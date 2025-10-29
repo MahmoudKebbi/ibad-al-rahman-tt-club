@@ -119,14 +119,14 @@ export const SessionPricing = {
 // Helper function to calculate membership expiration
 export const calculateMembershipExpiration = (
   membershipType,
-  startDate = new Date()
+  startDate = new Date(),
 ) => {
   const expiration = new Date(startDate);
 
   // Convert to uppercase and normalize format (replacing hyphens with underscores)
-  const normalizedType = membershipType.toUpperCase().replace(/-/g, '_');
+  const normalizedType = membershipType.toUpperCase().replace(/-/g, "_");
   const membership = MembershipTypes[normalizedType];
-  
+
   if (!membership) return null;
 
   expiration.setDate(startDate.getDate() + membership.duration);
@@ -146,9 +146,10 @@ export const getMembershipStatus = (expirationDate) => {
   if (!expirationDate) return "inactive";
 
   const now = new Date();
-  const expiration = typeof expirationDate.toDate === 'function' 
-    ? expirationDate.toDate() // Handle Firestore Timestamp
-    : new Date(expirationDate);
+  const expiration =
+    typeof expirationDate.toDate === "function"
+      ? expirationDate.toDate() // Handle Firestore Timestamp
+      : new Date(expirationDate);
 
   if (expiration > now) {
     return "active";
@@ -160,22 +161,23 @@ export const getMembershipStatus = (expirationDate) => {
 // Get active membership types (for display in UI)
 export const getActiveMembershipTypes = () => {
   return Object.values(MembershipTypes)
-    .filter(type => type.isActive)
+    .filter((type) => type.isActive)
     .sort((a, b) => a.displayOrder - b.displayOrder);
 };
 
 // Get membership days remaining
 export const getMembershipDaysRemaining = (expirationDate) => {
   if (!expirationDate) return 0;
-  
+
   const now = new Date();
-  const expiration = typeof expirationDate.toDate === 'function'
-    ? expirationDate.toDate()
-    : new Date(expirationDate);
-  
+  const expiration =
+    typeof expirationDate.toDate === "function"
+      ? expirationDate.toDate()
+      : new Date(expirationDate);
+
   // If already expired
   if (expiration <= now) return 0;
-  
+
   // Calculate days difference
   const diffTime = Math.abs(expiration - now);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -185,9 +187,9 @@ export const getMembershipDaysRemaining = (expirationDate) => {
 // Get membership by ID
 export const getMembershipById = (id) => {
   if (!id) return null;
-  
+
   // Convert to uppercase and normalize format (replacing hyphens with underscores)
-  const normalizedId = id.toUpperCase().replace(/-/g, '_');
+  const normalizedId = id.toUpperCase().replace(/-/g, "_");
   return MembershipTypes[normalizedId] || null;
 };
 
@@ -195,11 +197,11 @@ export const getMembershipById = (id) => {
 export const getPaymentMethodLabel = (method) => {
   switch (method) {
     case PaymentMethod.CASH:
-      return 'Cash';
+      return "Cash";
     case PaymentMethod.BANK_TRANSFER:
-      return 'Bank Transfer';
+      return "Bank Transfer";
     case PaymentMethod.OTHER:
-      return 'Other';
+      return "Other";
     default:
       return method;
   }

@@ -1,24 +1,31 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { signIn, signInWithGoogle, signInAsGuest, resetPassword, signUpAsGuest, checkEmailExists } from '../../services/firebase/auth';
-import { clearError } from '../../store/slices/authSlice';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  signIn,
+  signInWithGoogle,
+  signInAsGuest,
+  resetPassword,
+  signUpAsGuest,
+  checkEmailExists,
+} from "../../services/firebase/auth";
+import { clearError } from "../../store/slices/authSlice";
 
 //TODO: Continue with the guest sign-up functionality
 
 const GuestSignUp = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [emailValid, setEmailValid] = useState(false); // Track email validity
   const [emailExists, setEmailExists] = useState(false); // Track if email already exists
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(null); // Track password match state
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { error, isAuthenticated, role } = useSelector(state => state.auth);
+  const { error, isAuthenticated, role } = useSelector((state) => state.auth);
 
   // Check if passwords match
   const handlePasswordChange = (e) => {
@@ -30,8 +37,10 @@ const GuestSignUp = () => {
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setEmail(value);
-    setEmailValid(value.includes('@') && value.length > 5 && value.includes('.') ); // Simple email validation
-  }
+    setEmailValid(
+      value.includes("@") && value.length > 5 && value.includes("."),
+    ); // Simple email validation
+  };
 
   const handleConfirmPasswordChange = (e) => {
     const value = e.target.value;
@@ -51,20 +60,20 @@ const GuestSignUp = () => {
       dispatch(clearError());
 
       const exists = await checkEmailExists(email);
-      console.log('Email exists:', exists);
+      console.log("Email exists:", exists);
       if (exists) {
         setEmailExists(true);
         setLoading(false);
         return;
       } else {
-      await signUpAsGuest(email, password);
-      console.log('Sign-up successful');
-      setEmailExists(false);
-      // Redirect to login page after successful sign-up
-      navigate('/login');
+        await signUpAsGuest(email, password);
+        console.log("Sign-up successful");
+        setEmailExists(false);
+        // Redirect to login page after successful sign-up
+        navigate("/login");
       }
     } catch (error) {
-      console.error('Sign-up error:', error);
+      console.error("Sign-up error:", error);
     } finally {
       setLoading(false);
     }
@@ -77,17 +86,27 @@ const GuestSignUp = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-700 opacity-90"></div>
           <div className="absolute inset-0 bg-[url('/public/table-tennis-background.png')] bg-cover bg-center"></div>
           <div className="bg-white/30 backdrop-blur-lg relative z-10 px-4 text-white text-center w-full">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 py-6 flex justify-center w-full m-0 text-white-900">Ibad Al Rahman</h1>
-            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-white-700">Table Tennis Club</h2>
-            <p className="text-lg opacity-90 mb-8 text-white-500">Welcome to our community of table tennis enthusiasts.</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 py-6 flex justify-center w-full m-0 text-white-900">
+              Ibad Al Rahman
+            </h1>
+            <h2 className="text-2xl md:text-3xl font-semibold mb-6 text-white-700">
+              Table Tennis Club
+            </h2>
+            <p className="text-lg opacity-90 mb-8 text-white-500">
+              Welcome to our community of table tennis enthusiasts.
+            </p>
           </div>
         </div>
 
         <div className="md:w-1/2 flex items-center justify-center p-6 md:p-12">
           <div className="w-full max-w-md">
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-gray-800">We Are Pleased To Have You On Board!</h2>
-              <p className="text-gray-600 mt-2">Please fill in your email and password</p>
+              <h2 className="text-3xl font-bold text-gray-800">
+                We Are Pleased To Have You On Board!
+              </h2>
+              <p className="text-gray-600 mt-2">
+                Please fill in your email and password
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -97,7 +116,11 @@ const GuestSignUp = () => {
                   type="email"
                   required
                   className={`peer w-full px-4 py-3 border-b-2 ${
-                    emailValid === false ? 'border-red-500' : emailValid === true ? 'border-green-500' : 'border-gray-300'
+                    emailValid === false
+                      ? "border-red-500"
+                      : emailValid === true
+                        ? "border-green-500"
+                        : "border-gray-300"
                   } placeholder-transparent focus:outline-none focus:border-green-500 transition-colors bg-gray-50 rounded-t-md`}
                   placeholder="Email"
                   value={email}
@@ -110,7 +133,6 @@ const GuestSignUp = () => {
                   Email address
                 </label>
               </div>
-
 
               {emailValid === true && emailExists === false && (
                 <div className="text-green-500 text-sm">Email Valid</div>
@@ -125,7 +147,11 @@ const GuestSignUp = () => {
                   type="password"
                   required
                   className={`peer w-full px-4 py-3 border-b-2 ${
-                    passwordMatch === false ? 'border-red-500' : passwordMatch === true ? 'border-green-500' : 'border-gray-300'
+                    passwordMatch === false
+                      ? "border-red-500"
+                      : passwordMatch === true
+                        ? "border-green-500"
+                        : "border-gray-300"
                   } placeholder-transparent focus:outline-none focus:border-green-500 transition-colors bg-gray-50 rounded-t-md`}
                   placeholder="Password"
                   value={password}
@@ -145,7 +171,11 @@ const GuestSignUp = () => {
                   type="password"
                   required
                   className={`peer w-full px-4 py-3 border-b-2 ${
-                    passwordMatch === false ? 'border-red-500' : passwordMatch === true ? 'border-green-500' : 'border-gray-300'
+                    passwordMatch === false
+                      ? "border-red-500"
+                      : passwordMatch === true
+                        ? "border-green-500"
+                        : "border-gray-300"
                   } placeholder-transparent focus:outline-none focus:border-green-500 transition-colors bg-gray-50 rounded-t-md`}
                   placeholder="Re-enter Password"
                   value={confirmPassword}
@@ -160,7 +190,9 @@ const GuestSignUp = () => {
               </div>
 
               {passwordMatch === false && (
-                <div className="text-red-500 text-sm">Passwords do not match</div>
+                <div className="text-red-500 text-sm">
+                  Passwords do not match
+                </div>
               )}
               {passwordMatch === true && (
                 <div className="text-green-500 text-sm">Passwords match</div>
@@ -196,7 +228,7 @@ const GuestSignUp = () => {
                     <span>Signing up...</span>
                   </>
                 ) : (
-                  'Sign up'
+                  "Sign up"
                 )}
               </button>
             </form>

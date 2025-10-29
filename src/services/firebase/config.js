@@ -1,9 +1,7 @@
-
 import { initializeApp } from "firebase/app";
-import { getAuth, signOut } from "firebase/auth"; 
+import { getAuth, signOut } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -26,10 +24,9 @@ console.log("Firebase Config:", {
 });
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); 
-const db = getFirestore(app,"ibad-ttc-db");
+const auth = getAuth(app);
+const db = getFirestore(app, "ibad-ttc-db");
 const storage = getStorage(app);
-
 
 const clearExistingAuth = async () => {
   try {
@@ -40,7 +37,6 @@ const clearExistingAuth = async () => {
   }
 };
 
-
 // clearExistingAuth();
 // console.log("Firebase initialized successfully.");
-export { app, auth, db, storage};
+export { app, auth, db, storage };

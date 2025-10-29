@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../services/firebase/config';
-import { checkOutMember } from '../../services/firebase/attendance';
-import { formatTime, calculateDuration } from '../../models/Attendance';
+import React, { useState, useEffect } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../services/firebase/config";
+import { checkOutMember } from "../../services/firebase/attendance";
+import { formatTime, calculateDuration } from "../../models/Attendance";
 
-
-import ContentCard from '../layout/ContentCard';
-import InputField from '../../components/ui/InputField';
-import ActionButton from '../common/ActionButton';
+import ContentCard from "../layout/ContentCard";
+import InputField from "../../components/ui/InputField";
+import ActionButton from "../common/ActionButton";
 
 const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
   const [attendance, setAttendance] = useState(null);
@@ -16,7 +15,7 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    notes: '',
+    notes: "",
   });
 
   // Fetch attendance record and member data
@@ -32,9 +31,9 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
         setError(null);
 
         // Fetch attendance document
-        const attendanceDoc = await getDoc(doc(db, 'attendance', attendanceId));
+        const attendanceDoc = await getDoc(doc(db, "attendance", attendanceId));
         if (!attendanceDoc.exists()) {
-          setError('Attendance record not found');
+          setError("Attendance record not found");
           setLoading(false);
           return;
         }
@@ -43,21 +42,26 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
         setAttendance({
           id: attendanceDoc.id,
           ...attendanceData,
-          checkInTime: attendanceData.checkInTime?.toDate?.() || attendanceData.checkInTime,
-          checkOutTime: attendanceData.checkOutTime?.toDate?.() || attendanceData.checkOutTime
+          checkInTime:
+            attendanceData.checkInTime?.toDate?.() ||
+            attendanceData.checkInTime,
+          checkOutTime:
+            attendanceData.checkOutTime?.toDate?.() ||
+            attendanceData.checkOutTime,
         });
 
         // Fetch member document
-        const memberDoc = await getDoc(doc(db, 'users', attendanceData.memberId));
+        const memberDoc = await getDoc(
+          doc(db, "users", attendanceData.memberId),
+        );
         if (memberDoc.exists()) {
           setMember({
             id: memberDoc.id,
-            ...memberDoc.data()
+            ...memberDoc.data(),
           });
         }
-
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
         setError(`Failed to load attendance data: ${err.message}`);
       } finally {
         setLoading(false);
@@ -71,37 +75,37 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!attendanceId) {
-      setError('Attendance record ID is required');
+      setError("Attendance record ID is required");
       return;
     }
-    
+
     try {
       setSubmitting(true);
       setError(null);
-      
+
       // Prepare check-out data
       const checkOutData = {
         notes: formData.notes,
-        adminId: 'MahmoudKebbi', // Current admin ID
-        adminName: 'MahmoudKebbi', // Current admin name
+        adminId: "MahmoudKebbi", // Current admin ID
+        adminName: "MahmoudKebbi", // Current admin name
       };
-      
+
       // Perform check-out
       const result = await checkOutMember(attendanceId, checkOutData);
-      
+
       if (onSuccess) {
         onSuccess(result);
       }
     } catch (err) {
-      console.error('Error checking out member:', err);
+      console.error("Error checking out member:", err);
       setError(`Check-out failed: ${err.message}`);
     } finally {
       setSubmitting(false);
@@ -123,34 +127,42 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
         <div className="bg-yellow-50 p-4 rounded-md mb-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-yellow-800">
-                {member?.displayName || 'Member'} is already checked out
+                {member?.displayName || "Member"} is already checked out
               </h3>
               <div className="mt-2 text-sm text-yellow-700">
                 <p>Checked out at: {formatTime(attendance.checkOutTime)}</p>
-                <p>Duration: {calculateDuration(attendance.checkInTime, attendance.checkOutTime)}</p>
+                <p>
+                  Duration:{" "}
+                  {calculateDuration(
+                    attendance.checkInTime,
+                    attendance.checkOutTime,
+                  )}
+                </p>
                 {attendance.notes && <p>Notes: {attendance.notes}</p>}
               </div>
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-4">
-          <ActionButton
-            onClick={onCancel}
-            color="gray"
-          >
+          <ActionButton onClick={onCancel} color="gray">
             Cancel
           </ActionButton>
-          <ActionButton
-            onClick={() => onSuccess(attendance)}
-            color="blue"
-          >
+          <ActionButton onClick={() => onSuccess(attendance)} color="blue">
             View Attendance
           </ActionButton>
         </div>
@@ -164,8 +176,16 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -174,22 +194,30 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
           </div>
         </div>
       )}
-      
+
       {attendance && (
         <div className="bg-gray-50 p-4 rounded-md mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-2">Attendance Information</h3>
+          <h3 className="text-lg font-medium text-gray-800 mb-2">
+            Attendance Information
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-500">Member</p>
-              <p className="font-medium">{member?.displayName || attendance.memberName}</p>
+              <p className="font-medium">
+                {member?.displayName || attendance.memberName}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Check-In Time</p>
-              <p className="font-medium">{formatTime(attendance.checkInTime)}</p>
+              <p className="font-medium">
+                {formatTime(attendance.checkInTime)}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Date</p>
-              <p className="font-medium">{new Date(attendance.checkInTime).toLocaleDateString()}</p>
+              <p className="font-medium">
+                {new Date(attendance.checkInTime).toLocaleDateString()}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Type</p>
@@ -204,7 +232,7 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
           </div>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-6">
           <InputField
@@ -215,21 +243,13 @@ const CheckOutForm = ({ attendanceId, onSuccess, onCancel }) => {
             placeholder="Any comments about this check-out"
           />
         </div>
-        
+
         <div className="flex justify-end space-x-4">
-          <ActionButton
-            type="button"
-            onClick={onCancel}
-            color="gray"
-          >
+          <ActionButton type="button" onClick={onCancel} color="gray">
             Cancel
           </ActionButton>
-          <ActionButton
-            type="submit"
-            disabled={submitting}
-            color="red"
-          >
-            {submitting ? 'Checking Out...' : 'Check Out Member'}
+          <ActionButton type="submit" disabled={submitting} color="red">
+            {submitting ? "Checking Out..." : "Check Out Member"}
           </ActionButton>
         </div>
       </form>

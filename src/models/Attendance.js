@@ -56,7 +56,7 @@ export const validateCheckIn = (memberProfile) => {
     return {
       valid: false,
       message: `You've used all ${daysPerWeek} days allowed this week. Weekly limit resets on ${formatDate(
-        memberProfile.weeklyResetDate
+        memberProfile.weeklyResetDate,
       )}.`,
     };
   }

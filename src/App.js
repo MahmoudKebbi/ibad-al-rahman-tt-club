@@ -80,7 +80,7 @@ function App() {
   useAuth();
 
   const { isAuthenticated, user, role, loading } = useSelector(
-    (state) => state.auth
+    (state) => state.auth,
   );
 
   const homeRouteRedirect = () => {

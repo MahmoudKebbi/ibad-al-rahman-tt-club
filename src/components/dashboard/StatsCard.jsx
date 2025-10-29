@@ -1,31 +1,31 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React from "react";
+import PropTypes from "prop-types";
 
-const StatsCard = ({ title, value, icon, color = 'green' }) => {
+const StatsCard = ({ title, value, icon, color = "green" }) => {
   // Map of color classes - this object maps color names to their corresponding CSS classes
   const colorClasses = {
     green: {
-      bg: 'bg-green-100',
-      text: 'text-green-600'
+      bg: "bg-green-100",
+      text: "text-green-600",
     },
     blue: {
-      bg: 'bg-blue-100',
-      text: 'text-blue-600'
+      bg: "bg-blue-100",
+      text: "text-blue-600",
     },
     purple: {
-      bg: 'bg-purple-100',
-      text: 'text-purple-600'
+      bg: "bg-purple-100",
+      text: "text-purple-600",
     },
     yellow: {
-      bg: 'bg-yellow-100',
-      text: 'text-yellow-600'
+      bg: "bg-yellow-100",
+      text: "text-yellow-600",
     },
     red: {
-      bg: 'bg-red-100',
-      text: 'text-red-600'
-    }
+      bg: "bg-red-100",
+      text: "text-red-600",
+    },
   };
-  
+
   // Get the classes for the selected color, or fallback to green if the color isn't in our map
   const classes = colorClasses[color] || colorClasses.green;
 
@@ -34,8 +34,18 @@ const StatsCard = ({ title, value, icon, color = 'green' }) => {
       <div className="flex items-center">
         <div className={`${classes.bg} rounded-full p-3`}>
           {icon || (
-            <svg className={`h-8 w-8 ${classes.text}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <svg
+              className={`h-8 w-8 ${classes.text}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
             </svg>
           )}
         </div>
@@ -52,7 +62,7 @@ StatsCard.propTypes = {
   title: PropTypes.string.isRequired,
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   icon: PropTypes.element,
-  color: PropTypes.oneOf(['green', 'blue', 'purple', 'yellow', 'red'])
+  color: PropTypes.oneOf(["green", "blue", "purple", "yellow", "red"]),
 };
 
 export default StatsCard;

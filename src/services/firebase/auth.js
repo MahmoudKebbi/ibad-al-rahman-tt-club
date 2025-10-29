@@ -21,7 +21,7 @@ export const signIn = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     console.log("User signed in:", userCredential.user);
     return userCredential.user;
@@ -55,7 +55,7 @@ export const signInWithGoogle = async () => {
 
       console.log(
         "New user profile created in Firestore:",
-        userCredential.user.uid
+        userCredential.user.uid,
       );
     }
 
@@ -123,7 +123,7 @@ export const signInAsGuest = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = userCredential.user;
 
@@ -152,7 +152,7 @@ export const signUpAsGuest = async (email, password) => {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
     const user = userCredential.user;
 
@@ -182,7 +182,7 @@ export const createUser = async (
   email,
   displayName,
   role,
-  phoneNumber = ""
+  phoneNumber = "",
 ) => {
   // Create random temporary password (never stored or seen)
   const tempPassword = Math.random().toString(36).slice(-10);
@@ -191,7 +191,7 @@ export const createUser = async (
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
-    tempPassword
+    tempPassword,
   );
   const user = userCredential.user;
 
@@ -222,7 +222,7 @@ export const updateUserRole = async (userId, newRole) => {
         role: newRole,
         updatedAt: serverTimestamp(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     return true;

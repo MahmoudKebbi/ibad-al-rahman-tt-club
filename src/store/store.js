@@ -3,10 +3,9 @@ import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Use local storage
 import authReducer from "./slices/authSlice";
 
-
 const persistConfig = {
-  key: "auth", 
-  storage, 
+  key: "auth",
+  storage,
 };
 
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
